@@ -18,7 +18,7 @@ type Policy struct {
 
 //Statement represents body of AWS iam policy document
 type Statement struct {
-	Sid          string              `json:"Sid,omitempty"`          // statement ID, service specific
+	StatementID  string              `json:"StatementID,omitempty"`  // Statement ID, service specific
 	Effect       string              `json:"Effect"`                 // Allow or Deny
 	Principal    map[string][]string `json:"Principal,omitempty"`    // principal that is allowed or denied
 	NotPrincipal map[string][]string `json:"NotPrincipal,omitempty"` // exception to a list of principals
@@ -30,7 +30,7 @@ type Statement struct {
 }
 
 // UnmarshalJSON decodifies input JSON info to Policy type
-func (p *Policy) UnmarshalJSON(b []byte) error {
+func (policyJSON *Policy) UnmarshalJSON(b []byte) error {
 
 	var raw interface{}
 	var err error
@@ -47,9 +47,9 @@ func (p *Policy) UnmarshalJSON(b []byte) error {
 		for key, val := range value {
 			switch key {
 			case "Version":
-				p.Version = val.(string)
+				policyJSON.Version = val.(string)
 			case "ID":
-				p.ID = val.(string)
+				policyJSON.ID = val.(string)
 			case "Statement":
 				sSlice = make([]Statement, 0)
 				// Statement level - slice -> []interface{} , single element  -> map[string]interface
@@ -75,7 +75,7 @@ func (p *Policy) UnmarshalJSON(b []byte) error {
 					sSlice = append(sSlice, s)
 				}
 				//Assign statements slice to Policy
-				p.Statements = sSlice
+				policyJSON.Statements = sSlice
 			}
 		}
 	}
@@ -92,9 +92,9 @@ func (s *Statement) Parse(statement map[string]interface{}) {
 	for ke, ve := range statement {
 		// Swtich case over key type (identifying Statement elements)
 		switch ke {
-		case "Sid":
+		case "StatementID":
 			// Type assertion to assign
-			s.Sid = ve.(string)
+			s.StatementID = ve.(string)
 		case "Effect":
 			//Type assertion to assign
 			s.Effect = ve.(string)
