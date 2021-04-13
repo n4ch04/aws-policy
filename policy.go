@@ -9,112 +9,95 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Policy represents an AWS iam policy document
-type Policy struct {
-	Version    string      `json:"Version"`
-	ID         string      `json:"ID,omitempty"`
-	Statements []Statement `json:"Statement"`
-}
-
-//Statement represents body of AWS iam policy document
-type Statement struct {
-	StatementID  string              `json:"StatementID,omitempty"`  // Statement ID, service specific
-	Effect       string              `json:"Effect"`                 // Allow or Deny
-	Principal    map[string][]string `json:"Principal,omitempty"`    // principal that is allowed or denied
-	NotPrincipal map[string][]string `json:"NotPrincipal,omitempty"` // exception to a list of principals
-	Action       []string            `json:"Action"`                 // allowed or denied action
-	NotAction    []string            `json:"NotAction,omitempty"`    // matches everything except
-	Resource     []string            `json:"Resource,omitempty"`     // object or objects that the statement covers
-	NotResource  []string            `json:"NotResource,omitempty"`  // matches everything except
-	Condition    []string            `json:"Condition,omitempty"`    // conditions for when a policy is in effect
-}
-
 // UnmarshalJSON decodifies input JSON info to Policy type
 func (policyJSON *Policy) UnmarshalJSON(b []byte) error {
 
 	var raw interface{}
 	var err error
-	var sSlice []Statement
+	var statementList []Statement
 
 	err = json.Unmarshal(b, &raw)
 	if err != nil {
 		return err
 	}
 	// Parsing content of JSON element as empty interface
-	switch value := raw.(type) {
+	switch object := raw.(type) {
 	// All elelements
 	case map[string]interface{}:
-		for key, val := range value {
+		for key, value := range object {
 			switch key {
 			case "Version":
-				policyJSON.Version = val.(string)
+				policyJSON.Version = value.(string)
 			case "ID":
-				policyJSON.ID = val.(string)
+				policyJSON.ID = value.(string)
 			case "Statement":
-				sSlice = make([]Statement, 0)
-				// Statement level - slice -> []interface{} , single element  -> map[string]interface
-				switch statement := val.(type) {
+				statementList = make([]Statement, 0)
+				// Statement level - slice -> []interface{} , single element -> map[string]interface
+				switch statement := value.(type) {
 				// Statement slice -> iterate over elements, parse and store into slice
 				case []interface{}:
-					//statement slice
+					// statement slice
 					// iterate over statements
-					for _, v := range statement {
-						s := Statement{}
+					for _, statementValue := range statement {
+						statement := Statement{}
 						// Type assertion to format info
-						m := v.(map[string]interface{})
+						statementMap := statementValue.(map[string]interface{})
 						// Parse statement
-						s.Parse(m)
+						statement.Parse(statementMap)
 						// Append statement to slice
-						sSlice = append(sSlice, s)
+						statementList = append(statementList, statement)
 					}
 				// Single statement -> parse and store it into slice
 				case map[string]interface{}:
-					s := Statement{}
+					statementMap := Statement{}
 					// Parse statement
-					s.Parse(statement)
-					sSlice = append(sSlice, s)
+					statementMap.Parse(statement)
+					statementList = append(statementList, statementMap)
 				}
 				//Assign statements slice to Policy
-				policyJSON.Statements = sSlice
+				policyJSON.Statements = statementList
 			}
 		}
 	}
 	return err
 }
 
-//Parse decodifies input json info into Statement type
-func (s *Statement) Parse(statement map[string]interface{}) {
+// Parse decodifies input JSON info into Statement type
+func (statementJSON *Statement) Parse(statement map[string]interface{}) {
 
-	//Definitions
+	// Definitions
 	var principal, notPrincipal, action, notAction, resource, notResource, condition []string
 	var err error
-	// Iterate over map elements, each key element (ke) is the statement element identifer and each value element (ve) the statement element value
-	for ke, ve := range statement {
-		// Swtich case over key type (identifying Statement elements)
-		switch ke {
+
+	/* Iterate over map elements, each key element (statementKey) is the statement element
+	identifer and each value element (statementValue) the statement element value */
+	for statementKey, statementValue := range statement {
+		// Switch case over key type (identifying Statement elements)
+		switch statementKey {
 		case "StatementID":
 			// Type assertion to assign
-			s.StatementID = ve.(string)
+			statementJSON.StatementID = statementValue.(string)
 		case "Effect":
 			//Type assertion to assign
-			s.Effect = ve.(string)
+			statementJSON.Effect = statementValue.(string)
 		case "Principal":
-			// principal(ve) can be map[string][]string/string -> needs processing
+			// principal(statementValue) can be map[string][]string/string -> needs processing
 			// Initialize map
-			s.Principal = make(map[string][]string)
+			statementJSON.Principal = make(map[string][]string)
 			// procesing map
-			me := ve.(map[string]interface{})
-			// iterate over key principal (kp) and value principal (vp)
-			for kp, vp := range me {
-				// Vp can be string or []string
-				switch vp := vp.(type) {
+			mapStatement := statementValue.(map[string]interface{})
+			// iterate over key principal (keyPrincipal) and value principal (valuePrincipal)
+			for keyPrincipal, valuePrincipal := range mapStatement {
+				// valuePrincipal can be string or []string
+				switch valuePrincipal := valuePrincipal.(type) {
 				case string:
 					// As map each element is identified with a key and has a value
 					principal = make([]string, 0)
-					s.Principal[kp] = append(principal, vp)
+					statementJSON.Principal[keyPrincipal] = append(principal, valuePrincipal)
 				case []interface{}:
-					// If value is an interface we know we have an []string -> knowing final type we can use mapstructure (which uses reflect) to store as final type
-					err = mapstructure.Decode(ve, &s.Principal)
+					/* If value is an interface we know we have an []string -> knowing final type
+					we can use mapstructure (which uses reflect) to store as final type */
+					err = mapstructure.Decode(statementValue, &statementJSON.Principal)
 					if err != nil {
 						log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement principal element").Err(err).Msg("")
 					}
@@ -122,20 +105,20 @@ func (s *Statement) Parse(statement map[string]interface{}) {
 			}
 		case "NotPrincipal":
 			// Same case as principal
-			// notprincipal has to be ve = map[string][]string/string -> needs processing
+			// notprincipal has to be statementValue = map[string][]string/string -> needs processing
 			// Same procedure as Principal
 			// Intialize map
-			s.NotPrincipal = make(map[string][]string)
-			// procesing map (ve)
-			me := ve.(map[string]interface{})
-			for knp, vnp := range me {
-				// Vnp can be string or []string
-				switch vnp := vnp.(type) {
+			statementJSON.NotPrincipal = make(map[string][]string)
+			// procesing map (statementValue)
+			mapStatement := statementValue.(map[string]interface{})
+			for keyNotPrincipal, valueNotPrincipal := range mapStatement {
+				// valueNotPrincipal can be string or []string
+				switch vnp := valueNotPrincipal.(type) {
 				case string:
 					notPrincipal = make([]string, 0)
-					s.NotPrincipal[knp] = append(notPrincipal, vnp)
+					statementJSON.NotPrincipal[keyNotPrincipal] = append(notPrincipal, vnp)
 				case []interface{}:
-					err = mapstructure.Decode(ve, &s.NotPrincipal)
+					err = mapstructure.Decode(statementValue, &statementJSON.NotPrincipal)
 					if err != nil {
 						log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement not principal element").Err(err).Msg("")
 					}
@@ -144,12 +127,12 @@ func (s *Statement) Parse(statement map[string]interface{}) {
 		case "Action":
 			// We only have now string or []string, process with type assertion and mapstructure
 			// Action can be string or []string
-			switch ve := ve.(type) {
+			switch statementValue := statementValue.(type) {
 			case string:
 				action = make([]string, 0)
-				s.Action = append(action, ve)
+				statementJSON.Action = append(action, statementValue)
 			case []interface{}:
-				err = mapstructure.Decode(ve, &s.Action)
+				err = mapstructure.Decode(statementValue, &statementJSON.Action)
 				if err != nil {
 					log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement action element").Err(err).Msg("")
 				}
@@ -157,12 +140,12 @@ func (s *Statement) Parse(statement map[string]interface{}) {
 		case "NotAction":
 			// Same as Action
 			// NotAction can be string or []string
-			switch ve := ve.(type) {
+			switch statementValue := statementValue.(type) {
 			case string:
 				notAction = make([]string, 0)
-				s.NotAction = append(notAction, ve)
+				statementJSON.NotAction = append(notAction, statementValue)
 			case []interface{}:
-				err = mapstructure.Decode(ve, &s.NotAction)
+				err = mapstructure.Decode(statementValue, &statementJSON.NotAction)
 				if err != nil {
 					log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement not action element").Err(err).Msg("")
 				}
@@ -170,12 +153,12 @@ func (s *Statement) Parse(statement map[string]interface{}) {
 		case "Resource":
 			// Same as Action
 			// Resource can be string or []string
-			switch ve := ve.(type) {
+			switch statementValue := statementValue.(type) {
 			case string:
 				resource = make([]string, 0)
-				s.Resource = append(resource, ve)
+				statementJSON.Resource = append(resource, statementValue)
 			case []interface{}:
-				err = mapstructure.Decode(ve, &s.Resource)
+				err = mapstructure.Decode(statementValue, &statementJSON.Resource)
 				if err != nil {
 					log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement resource element").Err(err).Msg("")
 				}
@@ -183,31 +166,31 @@ func (s *Statement) Parse(statement map[string]interface{}) {
 		case "NotResource":
 			// Same as Action
 			// NotResource can be string or []string
-			switch ve := ve.(type) {
+			switch statementValue := statementValue.(type) {
 			case string:
 				notResource = make([]string, 0)
-				s.NotResource = append(notResource, ve)
+				statementJSON.NotResource = append(notResource, statementValue)
 			case []interface{}:
-				err = mapstructure.Decode(ve, &s.NotResource)
+				err = mapstructure.Decode(statementValue, &statementJSON.NotResource)
 				if err != nil {
 					log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement not resource element").Err(err).Msg("")
 				}
 			}
 		case "Condition":
 			// Condition can be string, []string or map(lot of options)
-			switch ve := ve.(type) {
+			switch statementValue := statementValue.(type) {
 			case string:
 				condition = make([]string, 0)
-				s.Condition = append(condition, ve)
+				statementJSON.Condition = append(condition, statementValue)
 			case []interface{}:
-				err = mapstructure.Decode(ve, &s.Condition)
+				err = mapstructure.Decode(statementValue, &statementJSON.Condition)
 				if err != nil {
 					log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement condition element").Err(err).Msg("")
 				}
 			// If map format as raw text and store it as string
 			case map[string]interface{}:
 				condition = make([]string, 0)
-				s.Condition = append(condition, fmt.Sprintf("%v", ve))
+				statementJSON.Condition = append(condition, fmt.Sprintf("%v", statementValue))
 			}
 		}
 	}
