@@ -1,4 +1,4 @@
-package awsPolicy
+package policy
 
 import (
 	"testing"

@@ -1,4 +1,4 @@
-module awsPolicy
+module github.com/n4ch04/aws-policy
 
 go 1.15
 
