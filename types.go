@@ -1,4 +1,4 @@
-package policy
+package awspolicy
 
 // Policy represents an AWS iam policy document
 type Policy struct {
