@@ -1,4 +1,4 @@
-// Package policy provides a custom function to unmarshal AWS policies.
+// Package awsPolicy provides a custom function to unmarshal AWS policies.
 package policy
 
 import (
@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// UnmarshalJSON decodifies input JSON info to Policy type
+// UnmarshalJSON decodifies input JSON info to awsPolicy type
 func (policyJSON *Policy) UnmarshalJSON(policy []byte) error {
 
 	var raw interface{}
