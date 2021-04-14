@@ -1,4 +1,4 @@
-// Package awsPolicy provides a custom function to unmarshal AWS policies.
+// Package policy provides a custom function to unmarshal AWS policies.
 package policy
 
 import (
