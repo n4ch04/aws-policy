@@ -30,15 +30,19 @@ var validatePolicies = []struct {
 			ID:      "",
 			Statements: []Statement{
 				{
-					StatementID:  "",
-					Effect:       "Allow",
-					Principal:    map[string][]string{"AWS": {"arn:aws:iam::1234567890:root"}},
+					StatementID: "",
+					Effect:      "Allow",
+					Principal: map[string][]string{
+						"AWS": {"arn:aws:iam::1234567890:root"},
+					},
 					NotPrincipal: map[string][]string{},
-					Action:       []string{"sts:AssumeRole"},
-					NotAction:    []string{},
-					Resource:     []string{},
-					NotResource:  []string{},
-					Condition:    []string{},
+					Action: []string{
+						"sts:AssumeRole",
+					},
+					NotAction:   []string{},
+					Resource:    []string{},
+					NotResource: []string{},
+					Condition:   []string{},
 				}}}, parsed: nil,
 	},
 	{
@@ -98,9 +102,11 @@ var validatePolicies = []struct {
 			ID:      "",
 			Statements: []Statement{
 				{
-					Effect:      "Allow",
-					Action:      []string{"athena:*"},
-					Resource:    []string{"arn:aws:athena:eu-west-5:*:workgroup/AthenaWorkGroup"},
+					Effect: "Allow",
+					Action: []string{"athena:*"},
+					Resource: []string{
+						"arn:aws:athena:eu-west-5:*:workgroup/AthenaWorkGroup",
+					},
 					NotResource: []string{},
 					Condition:   []string{},
 				}, {
@@ -130,7 +136,10 @@ var validatePolicies = []struct {
 						"s3:CreateBucket",
 						"s3:ListAllMyBuckets",
 						"s3:GetBucketLocation"},
-					Resource:    []string{"*"},
+					Resource: []string{
+						"arn:aws:s3:::bucket1",
+						"arn:aws:s3:::bucket1/*",
+					},
 					NotResource: []string{},
 					Condition:   []string{},
 				}}}, parsed: nil,
