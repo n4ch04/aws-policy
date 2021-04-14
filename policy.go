@@ -1,5 +1,5 @@
 // Package policy provides a custom function to unmarshal AWS policies.
-package policy
+package awsPolicy
 
 import (
 	"encoding/json"
