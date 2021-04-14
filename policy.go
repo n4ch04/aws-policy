@@ -10,13 +10,13 @@ import (
 )
 
 // UnmarshalJSON decodifies input JSON info to Policy type
-func (policyJSON *Policy) UnmarshalJSON(b []byte) error {
+func (policyJSON *Policy) UnmarshalJSON(policy []byte) error {
 
 	var raw interface{}
 	var err error
 	var statementList []Statement
 
-	err = json.Unmarshal(b, &raw)
+	err = json.Unmarshal(policy, &raw)
 	if err != nil {
 		return err
 	}
