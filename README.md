@@ -1,4 +1,4 @@
-# AWS-Policy
+# awsPolicy
 [![Go Reference](https://pkg.go.dev/badge/github.com/n4ch04/awsPolicy.svg)](https://pkg.go.dev/github.com/n4ch04/awsPolicy)  
 
 AWS have an amazing SDK for Go with all API functions output typed, and works like clockwork ... until IAM policy documents appear.  
