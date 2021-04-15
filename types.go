@@ -1,13 +1,13 @@
 package awspolicy
 
-// Policy represents an AWS iam policy document
+// Policy represents an AWS IAM policy document
 type Policy struct {
 	Version    string      `json:"Version"`
 	ID         string      `json:"ID,omitempty"`
 	Statements []Statement `json:"Statement"`
 }
 
-//Statement represents body of AWS iam policy document
+// Statement represents the body of an AWS IAM policy document
 type Statement struct {
 	StatementID  string              `json:"StatementID,omitempty"`  // Statement ID, service specific
 	Effect       string              `json:"Effect"`                 // Allow or Deny
