@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// UnmarshalJSON decodifies input JSON info to awsPolicy type
+// UnmarshalJSON decodes input JSON info to awsPolicy type
 func (policyJSON *Policy) UnmarshalJSON(policy []byte) error {
 
 	var raw interface{}
@@ -22,7 +22,7 @@ func (policyJSON *Policy) UnmarshalJSON(policy []byte) error {
 	}
 	// Parsing content of JSON element as empty interface
 	switch object := raw.(type) {
-	// All elelements
+	// All elements
 	case map[string]interface{}:
 		for key, value := range object {
 			switch key {
@@ -62,7 +62,7 @@ func (policyJSON *Policy) UnmarshalJSON(policy []byte) error {
 	return err
 }
 
-// Parse decodifies input JSON info into Statement type
+// Parse decodes input JSON info into Statement type
 func (statementJSON *Statement) Parse(statement map[string]interface{}) {
 
 	// Definitions
@@ -70,11 +70,14 @@ func (statementJSON *Statement) Parse(statement map[string]interface{}) {
 	var err error
 
 	/* Iterate over map elements, each key element (statementKey) is the statement element
-	identifer and each value element (statementValue) the statement element value */
+	identifier and each value element (statementValue) the statement element value */
 	for statementKey, statementValue := range statement {
 		// Switch case over key type (identifying Statement elements)
 		switch statementKey {
 		case "StatementID":
+			// Type assertion to assign
+			statementJSON.StatementID = statementValue.(string)
+		case "Sid":
 			// Type assertion to assign
 			statementJSON.StatementID = statementValue.(string)
 		case "Effect":
@@ -84,7 +87,7 @@ func (statementJSON *Statement) Parse(statement map[string]interface{}) {
 			// principal(statementValue) can be map[string][]string/string -> needs processing
 			// Initialize map
 			statementJSON.Principal = make(map[string][]string)
-			// procesing map
+			// processing map
 			mapStatement := statementValue.(map[string]interface{})
 			// iterate over key principal (keyPrincipal) and value principal (valuePrincipal)
 			for keyPrincipal, valuePrincipal := range mapStatement {
@@ -109,7 +112,7 @@ func (statementJSON *Statement) Parse(statement map[string]interface{}) {
 			// Same procedure as Principal
 			// Intialize map
 			statementJSON.NotPrincipal = make(map[string][]string)
-			// procesing map (statementValue)
+			// processing map (statementValue)
 			mapStatement := statementValue.(map[string]interface{})
 			for keyNotPrincipal, valueNotPrincipal := range mapStatement {
 				// valueNotPrincipal can be string or []string
