@@ -30,6 +30,8 @@ func (policyJSON *Policy) UnmarshalJSON(policy []byte) error {
 				policyJSON.Version = value.(string)
 			case "ID":
 				policyJSON.ID = value.(string)
+			case "Id":
+				policyJSON.ID = value.(string)
 			case "Statement":
 				statementList = make([]Statement, 0)
 				// Statement level - slice -> []interface{} , single element -> map[string]interface

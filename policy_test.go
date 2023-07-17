@@ -13,6 +13,7 @@ var validatePolicies = []struct {
 		inputPolicy: []byte(`
 	{
 		"Version": "2012-10-17",
+		"ID": "1234",
 		"Statement": [
 			{
 				"Effect": "Allow",
@@ -26,24 +27,24 @@ var validatePolicies = []struct {
 		]
 	}		
 	`), outputPolicy: Policy{
-			Version: "2012-10-17",
-			ID:      "",
-			Statements: []Statement{
-				{
-					StatementID: "",
-					Effect:      "Allow",
-					Principal: map[string][]string{
-						"AWS": {"arn:aws:iam::1234567890:root"},
-					},
-					NotPrincipal: map[string][]string{},
-					Action: []string{
-						"sts:AssumeRole",
-					},
-					NotAction:   []string{},
-					Resource:    []string{},
-					NotResource: []string{},
-					Condition:   []string{},
-				}}}, parsed: nil,
+		Version: "2012-10-17",
+		ID:      "1234",
+		Statements: []Statement{
+			{
+				StatementID: "",
+				Effect:      "Allow",
+				Principal: map[string][]string{
+					"AWS": {"arn:aws:iam::1234567890:root"},
+				},
+				NotPrincipal: map[string][]string{},
+				Action: []string{
+					"sts:AssumeRole",
+				},
+				NotAction:   []string{},
+				Resource:    []string{},
+				NotResource: []string{},
+				Condition:   []string{},
+			}}}, parsed: nil,
 	},
 	{
 		inputPolicy: []byte(`
@@ -148,6 +149,7 @@ var validatePolicies = []struct {
 		inputPolicy: []byte(`
 	{
 		"Version": "2012-10-17",
+		"Id": "1234",
 		"Statement": [
 			{
 				"StatementID": "1234",
@@ -172,39 +174,39 @@ var validatePolicies = []struct {
 		]
 	}		
 	`), outputPolicy: Policy{
-			Version: "2012-10-17",
-			ID:      "",
-			Statements: []Statement{
-				{
-					StatementID: "1234",
-					Effect:      "Allow",
-					Principal: map[string][]string{
-						"AWS": {"arn:aws:iam::1234567890:root"},
-					},
-					NotPrincipal: map[string][]string{},
-					Action: []string{
-						"sts:AssumeRole",
-					},
-					NotAction:   []string{},
-					Resource:    []string{},
-					NotResource: []string{},
-					Condition:   []string{},
+		Version: "2012-10-17",
+		ID:      "1234",
+		Statements: []Statement{
+			{
+				StatementID: "1234",
+				Effect:      "Allow",
+				Principal: map[string][]string{
+					"AWS": {"arn:aws:iam::1234567890:root"},
 				},
-				{
-					StatementID: "5678",
-					Effect:      "Allow",
-					Principal: map[string][]string{
-						"AWS": {"arn:aws:iam::1234567890:root"},
-					},
-					NotPrincipal: map[string][]string{},
-					Action: []string{
-						"sts:AssumeRole",
-					},
-					NotAction:   []string{},
-					Resource:    []string{},
-					NotResource: []string{},
-					Condition:   []string{},
-				}}}, parsed: nil,
+				NotPrincipal: map[string][]string{},
+				Action: []string{
+					"sts:AssumeRole",
+				},
+				NotAction:   []string{},
+				Resource:    []string{},
+				NotResource: []string{},
+				Condition:   []string{},
+			},
+			{
+				StatementID: "5678",
+				Effect:      "Allow",
+				Principal: map[string][]string{
+					"AWS": {"arn:aws:iam::1234567890:root"},
+				},
+				NotPrincipal: map[string][]string{},
+				Action: []string{
+					"sts:AssumeRole",
+				},
+				NotAction:   []string{},
+				Resource:    []string{},
+				NotResource: []string{},
+				Condition:   []string{},
+			}}}, parsed: nil,
 	}}
 
 func TestParsePolicies(t *testing.T) {
