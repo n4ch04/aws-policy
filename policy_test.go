@@ -160,7 +160,7 @@ var validatePolicies = []struct {
 				]
 			},
 			{
-				"StatementID": "5678",
+				"Sid": "5678",
 				"Effect": "Allow",
 				"Action": [
 				  "sts:AssumeRole"
