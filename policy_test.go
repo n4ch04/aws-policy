@@ -1,6 +1,7 @@
 package awspolicy
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -16,6 +17,7 @@ var validatePolicies = []struct {
 		"ID": "1234",
 		"Statement": [
 			{
+				"Principal": {"AWS":"*"},
 				"Effect": "Allow",
 				"Action": [
 				  "sts:AssumeRole"
@@ -27,24 +29,20 @@ var validatePolicies = []struct {
 		]
 	}		
 	`), outputPolicy: Policy{
-		Version: "2012-10-17",
-		ID:      "1234",
-		Statements: []Statement{
-			{
-				StatementID: "",
-				Effect:      "Allow",
-				Principal: map[string][]string{
-					"AWS": {"arn:aws:iam::1234567890:root"},
-				},
-				NotPrincipal: map[string][]string{},
-				Action: []string{
-					"sts:AssumeRole",
-				},
-				NotAction:   []string{},
-				Resource:    []string{},
-				NotResource: []string{},
-				Condition:   []string{},
-			}}}, parsed: nil,
+			Version: "2012-10-17",
+			ID:      "1234",
+			Statements: []Statement{
+				{
+					StatementID: "",
+					Effect:      "Allow",
+					Principal: map[string][]string{
+						"AWS": {"*"},
+					},
+					Action: []string{
+						"sts:AssumeRole",
+					},
+					Resource: []string{"arn:aws:iam::99999999999:role/admin"},
+				}}}, parsed: nil,
 	},
 	{
 		inputPolicy: []byte(`
@@ -53,6 +51,7 @@ var validatePolicies = []struct {
 				"Statement": [
 					{
 						"Effect": "Allow",
+						"Principal": "*",
 						"Action": [
 							"athena:*"
 						],
@@ -103,13 +102,12 @@ var validatePolicies = []struct {
 			ID:      "",
 			Statements: []Statement{
 				{
-					Effect: "Allow",
-					Action: []string{"athena:*"},
+					Effect:    "Allow",
+					Principal: map[string][]string{"*": {"*"}},
+					Action:    []string{"athena:*"},
 					Resource: []string{
 						"arn:aws:athena:eu-west-5:*:workgroup/AthenaWorkGroup",
 					},
-					NotResource: []string{},
-					Condition:   []string{},
 				}, {
 					Effect: "Allow",
 					Action: []string{
@@ -123,9 +121,7 @@ var validatePolicies = []struct {
 						"glue:GetPartitions",
 						"glue:BatchGetPartition",
 						"glue:GetCatalogImportStatus"},
-					Resource:    []string{"*"},
-					NotResource: []string{},
-					Condition:   []string{},
+					Resource: []string{"*"},
 				}, {
 					Effect: "Allow",
 					Action: []string{
@@ -141,8 +137,6 @@ var validatePolicies = []struct {
 						"arn:aws:s3:::bucket1",
 						"arn:aws:s3:::bucket1/*",
 					},
-					NotResource: []string{},
-					Condition:   []string{},
 				}}}, parsed: nil,
 	},
 	{
@@ -174,40 +168,27 @@ var validatePolicies = []struct {
 		]
 	}		
 	`), outputPolicy: Policy{
-		Version: "2012-10-17",
-		ID:      "1234",
-		Statements: []Statement{
-			{
-				StatementID: "1234",
-				Effect:      "Allow",
-				Principal: map[string][]string{
-					"AWS": {"arn:aws:iam::1234567890:root"},
+			Version: "2012-10-17",
+			ID:      "1234",
+			Statements: []Statement{
+				{
+					StatementID: "1234",
+					Effect:      "Allow",
+					Action: []string{
+						"sts:AssumeRole",
+					},
+					Resource: []string{"arn:aws:iam::99999999999:role/admin"},
 				},
-				NotPrincipal: map[string][]string{},
-				Action: []string{
-					"sts:AssumeRole",
-				},
-				NotAction:   []string{},
-				Resource:    []string{},
-				NotResource: []string{},
-				Condition:   []string{},
-			},
-			{
-				StatementID: "5678",
-				Effect:      "Allow",
-				Principal: map[string][]string{
-					"AWS": {"arn:aws:iam::1234567890:root"},
-				},
-				NotPrincipal: map[string][]string{},
-				Action: []string{
-					"sts:AssumeRole",
-				},
-				NotAction:   []string{},
-				Resource:    []string{},
-				NotResource: []string{},
-				Condition:   []string{},
-			}}}, parsed: nil,
-	}}
+				{
+					StatementID: "5678",
+					Effect:      "Allow",
+					Action: []string{
+						"sts:AssumeRole",
+					},
+					Resource: []string{"arn:aws:iam::99999999999:role/admin"},
+				}}}, parsed: nil,
+	},
+}
 
 func TestParsePolicies(t *testing.T) {
 	for _, test := range validatePolicies {
@@ -217,6 +198,9 @@ func TestParsePolicies(t *testing.T) {
 			if got != test.parsed {
 				t.Errorf("Expected: %v, got: %v", test.parsed, got)
 			}
+			assert.Equal(t, test.outputPolicy.ID, policy.ID)
+			assert.Equal(t, test.outputPolicy.Version, policy.Version)
+			assert.Equal(t, test.outputPolicy.Statements, policy.Statements)
 		})
 	}
 }

@@ -90,23 +90,28 @@ func (statementJSON *Statement) Parse(statement map[string]interface{}) {
 			// Initialize map
 			statementJSON.Principal = make(map[string][]string)
 			// processing map
-			mapStatement := statementValue.(map[string]interface{})
-			// iterate over key principal (keyPrincipal) and value principal (valuePrincipal)
-			for keyPrincipal, valuePrincipal := range mapStatement {
-				// valuePrincipal can be string or []string
-				switch valuePrincipal := valuePrincipal.(type) {
-				case string:
-					// As map each element is identified with a key and has a value
-					principal = make([]string, 0)
-					statementJSON.Principal[keyPrincipal] = append(principal, valuePrincipal)
-				case []interface{}:
-					/* If value is an interface we know we have an []string -> knowing final type
-					we can use mapstructure (which uses reflect) to store as final type */
-					err = mapstructure.Decode(statementValue, &statementJSON.Principal)
-					if err != nil {
-						log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement principal element").Err(err).Msg("")
+			switch statementValue.(type) {
+			case map[string]interface{}:
+				mapStatement := statementValue.(map[string]interface{})
+				// iterate over key principal (keyPrincipal) and value principal (valuePrincipal)
+				for keyPrincipal, valuePrincipal := range mapStatement {
+					// valuePrincipal can be string or []string
+					switch valuePrincipal := valuePrincipal.(type) {
+					case string:
+						// As map each element is identified with a key and has a value
+						principal = make([]string, 0)
+						statementJSON.Principal[keyPrincipal] = append(principal, valuePrincipal)
+					case []interface{}:
+						/* If value is an interface we know we have an []string -> knowing final type
+						we can use mapstructure (which uses reflect) to store as final type */
+						err = mapstructure.Decode(statementValue, &statementJSON.Principal)
+						if err != nil {
+							log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement principal element").Err(err).Msg("")
+						}
 					}
 				}
+			case string:
+				statementJSON.Principal["*"] = []string{statementValue.(string)}
 			}
 		case "NotPrincipal":
 			// Same case as principal
@@ -115,19 +120,24 @@ func (statementJSON *Statement) Parse(statement map[string]interface{}) {
 			// Intialize map
 			statementJSON.NotPrincipal = make(map[string][]string)
 			// processing map (statementValue)
-			mapStatement := statementValue.(map[string]interface{})
-			for keyNotPrincipal, valueNotPrincipal := range mapStatement {
-				// valueNotPrincipal can be string or []string
-				switch vnp := valueNotPrincipal.(type) {
-				case string:
-					notPrincipal = make([]string, 0)
-					statementJSON.NotPrincipal[keyNotPrincipal] = append(notPrincipal, vnp)
-				case []interface{}:
-					err = mapstructure.Decode(statementValue, &statementJSON.NotPrincipal)
-					if err != nil {
-						log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement not principal element").Err(err).Msg("")
+			switch statementValue.(type) {
+			case map[string]interface{}:
+				mapStatement := statementValue.(map[string]interface{})
+				for keyNotPrincipal, valueNotPrincipal := range mapStatement {
+					// valueNotPrincipal can be string or []string
+					switch vnp := valueNotPrincipal.(type) {
+					case string:
+						notPrincipal = make([]string, 0)
+						statementJSON.NotPrincipal[keyNotPrincipal] = append(notPrincipal, vnp)
+					case []interface{}:
+						err = mapstructure.Decode(statementValue, &statementJSON.NotPrincipal)
+						if err != nil {
+							log.Error().Str("Error parsing policies", "Error using mapstructure parsing Policy statement not principal element").Err(err).Msg("")
+						}
 					}
 				}
+			case string:
+				statementJSON.Principal["*"] = []string{statementValue.(string)}
 			}
 		case "Action":
 			// We only have now string or []string, process with type assertion and mapstructure
